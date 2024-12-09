@@ -11,7 +11,12 @@ import shap
 import matplotlib.pyplot as plt
 import folium
 from streamlit_folium import st_folium
-pip install geopandas
+try:
+    import geopandas as gpd
+except ImportError:
+    st.error("The 'geopandas' library is not installed. Please install it by running 'pip install geopandas'.")
+    st.stop()
+
 
 # Create requirements.txt
 def create_requirements():
