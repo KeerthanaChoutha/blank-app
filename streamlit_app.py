@@ -11,12 +11,6 @@ import shap
 import matplotlib.pyplot as plt
 import folium
 from streamlit_folium import st_folium
-try:
-    import geopandas as gpd
-except ImportError:
-    st.error("The 'geopandas' library is not installed. Please install it by running 'pip install geopandas'.")
-    st.stop()
-
 
 # Create requirements.txt
 def create_requirements():
@@ -55,7 +49,7 @@ def load_data():
 # Data splitting
 def prepare_data(data):
     """Prepare data for training and testing."""
-    feature_cols = [col for col in data.columns if col not in ['incident_id', 'data_year', 'state_name', 'incident_date', 'victim_types']]
+    feature_cols = [col for col in data.columns if col not in ['incident_id', 'data_year', 'state_name', 'incident_date', 'victim_types', 'longitude', 'latitude']]
     X = data[feature_cols]
     y = (data['victim_count'] > 1).astype(int)  # Example target: more than 1 victim
     
@@ -97,23 +91,26 @@ def main():
 
     # Clustering with DBSCAN
     st.write("### Geospatial Clustering")
-    geo_data = gpd.GeoDataFrame(data, geometry=gpd.points_from_xy(data['longitude'], data['latitude']))
-    scaler = StandardScaler()
-    scaled_coords = scaler.fit_transform(geo_data[['latitude', 'longitude']])
-    dbscan = DBSCAN(eps=0.5, min_samples=5).fit(scaled_coords)
-    geo_data['cluster'] = dbscan.labels_
+    if 'longitude' in data.columns and 'latitude' in data.columns:
+        geo_data = gpd.GeoDataFrame(data, geometry=gpd.points_from_xy(data['longitude'], data['latitude']))
+        scaler = StandardScaler()
+        scaled_coords = scaler.fit_transform(geo_data[['latitude', 'longitude']])
+        dbscan = DBSCAN(eps=0.5, min_samples=5).fit(scaled_coords)
+        geo_data['cluster'] = dbscan.labels_
 
-    # Display map
-    st.write("#### Clustered Map")
-    m = folium.Map(location=[geo_data['latitude'].mean(), geo_data['longitude'].mean()], zoom_start=6)
-    for _, row in geo_data.iterrows():
-        folium.CircleMarker(
-            location=(row['latitude'], row['longitude']),
-            radius=5,
-            color='blue' if row['cluster'] != -1 else 'red',
-            fill=True
-        ).add_to(m)
-    st_folium(m)
+        # Display map
+        st.write("#### Clustered Map")
+        m = folium.Map(location=[geo_data['latitude'].mean(), geo_data['longitude'].mean()], zoom_start=6)
+        for _, row in geo_data.iterrows():
+            folium.CircleMarker(
+                location=(row['latitude'], row['longitude']),
+                radius=5,
+                color='blue' if row['cluster'] != -1 else 'red',
+                fill=True
+            ).add_to(m)
+        st_folium(m)
+    else:
+        st.warning("Longitude and latitude columns are missing. Geospatial clustering cannot be performed.")
 
     # SHAP Explainability
     st.write("### SHAP Analysis")
