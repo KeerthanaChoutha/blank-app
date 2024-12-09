@@ -12,6 +12,22 @@ import matplotlib.pyplot as plt
 import folium
 from streamlit_folium import st_folium
 
+# Create requirements.txt
+def create_requirements():
+    """Create a requirements.txt file dynamically."""
+    requirements = """streamlit
+pandas
+numpy
+scikit-learn
+shap
+matplotlib
+folium
+streamlit-folium
+geopandas
+"""
+    with open("requirements.txt", "w") as f:
+        f.write(requirements)
+
 # Load the dataset
 def load_data():
     """Load and preprocess the hate crime dataset."""
@@ -43,6 +59,9 @@ def prepare_data(data):
 # Build Streamlit app
 def main():
     st.title("Hate Crime Hotspot Predictor")
+
+    # Create requirements.txt
+    create_requirements()
 
     # Load data
     data = load_data()
