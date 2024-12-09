@@ -11,6 +11,7 @@ import shap
 import matplotlib.pyplot as plt
 import folium
 from streamlit_folium import st_folium
+pip install geopandas
 
 # Create requirements.txt
 def create_requirements():
